@@ -232,3 +232,26 @@ class HandEvaluator:
                 return f"Hand 2 wins with {hand2_type} ({hand2_cards})", "hand2"
 
         return "It's a tie!", "tie"
+
+
+hand1 = [
+    Card('5', '♥'),
+    Card('4', '♠'),
+    Card('7', '♦'),
+    Card('9', '♣'),
+    Card('4', '♣'),
+    Card('Q', '♦'),
+    Card('5', '♠')
+]
+
+hand2 = [
+    Card('5', '♥'),
+    Card('4', '♠'),
+    Card('7', '♦'),
+    Card('9', '♣'),
+    Card('4', '♣'),
+    Card('3', '♥'),
+    Card('Q', '♥')
+]
+
+print(HandEvaluator.compare_hands(hand1,hand2))

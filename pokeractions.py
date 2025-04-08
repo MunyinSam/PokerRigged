@@ -50,6 +50,7 @@ class PlayerActions:
 
         if amount is not None:
             if amount > player_chips:
+                self.show_popup("Invalid Action", "Not enough chips to raise.")
                 print(f"Insufficient chips. You only have {player_chips} chips.")
             else:
                 print(f"{self.game_state.get_player_turn().name} raised by {amount}.")
@@ -77,6 +78,14 @@ class PlayerActions:
             print("Full hand: ", full_hand)
             print("Evaluated_hand: ", evaluated_hand)
             print("----------------")
+
+    def show_popup(self, title, message):
+        popup_root = tk.Tk()
+        popup_root.withdraw()
+        popup_root.attributes("-topmost", True)
+
+        messagebox.showerror(title, message, parent=popup_root)
+        popup_root.destroy()
 
 class PlayerManager:
     def __init__(self, player, game):
@@ -158,6 +167,7 @@ class BotManager:
 class PokerGame:
     def __init__(self, screen):
         self.screen = screen
+        self.reset_in_progress = False
         self.start_game()
 
     def start_game(self):
@@ -169,6 +179,7 @@ class PokerGame:
         self.pot = 0
         self.bets = {player: 0 for player in self.players}
         self.bot_thinking = False
+        self.showcard = False
 
         self.player_manager = PlayerManager(self.players[0], self)
         self.bot_manager = BotManager(self.players[1], self)
@@ -179,12 +190,16 @@ class PokerGame:
         # Reset the deck for a new round
         print("called")
         self.deck = Deck()
+        self.showcard = False
 
         # Reset players
         for player in self.players:
-            player.unfold()            # Marks folded = False
+            player.folded = False            # Marks folded = False
             player.checked = False     # Important for check logic
             player.hand = []           # Clear old hand
+
+        active_players = [p for p in self.players if not p.folded]
+        print("players: ", [player.folded for player in self.players])
 
         # Reset game state
         self.turn = "Pre-Flop"
@@ -217,8 +232,10 @@ class PokerGame:
         active_players = [p for p in self.players if not p.folded]
 
         if len(active_players) == 1:
-            print(f"{active_players[0].name} wins the pot of {self.pot} chips!")
-            self.reset_game()
+            text = f"{active_players[0].name} wins the pot of {self.pot} chips!"
+            active_players[0].chips += self.pot
+            self.showcard = True
+            self.ask_reset_game(text)
             return
 
         current_index = active_players.index(self.player_turn) if self.player_turn in active_players else -1
@@ -244,14 +261,14 @@ class PokerGame:
 
     def raise_bet(self, amount):
         if amount > self.player_turn.chips:
-            threading.Thread(target=self.show_popup, args=("Invalid Action", "Not enough chips to raise.")).start()
+            self.show_popup("Invalid Action", "Not enough chips to raise.")
             return
         self._place_bet(amount)
         self.change_turn()
 
     def check(self):
         if self.bets[self.player_turn] < max(self.bets.values()):
-            threading.Thread(target=self.show_popup, args=("Invalid Action", "Cannot check, must call or raise.")).start()
+            self.show_popup("Invalid Action", "Cannot check, must call or raise.")
             return
         self.player_turn.checked = True
         self.change_turn()
@@ -263,7 +280,7 @@ class PokerGame:
         max_bet = max(self.bets.values())
         call_amount = max_bet - self.bets[self.player_turn]
         if call_amount > self.player_turn.chips:
-            threading.Thread(target=self.show_popup, args=("Invalid Action", "Not enough chips to call.")).start()
+            self.show_popup("Invalid Action", "Not enough chips to call.")
             return
         self._place_bet(call_amount)
         self.change_turn()
@@ -277,8 +294,10 @@ class PokerGame:
 
         active_players = [p for p in self.players if not p.folded]
         if len(active_players) == 1:
-            print(f"{active_players[0].name} wins the pot of {self.pot} chips!")
-            self.reset_game()
+            text = f"{active_players[0].name} wins the pot of {self.pot} chips!"
+            active_players[0].chips += self.pot
+            self.showcard = True
+            self.ask_reset_game(text)
             return
 
         if all(self.bets[player] == max(self.bets.values()) for player in self.players if not player.folded):
@@ -288,46 +307,76 @@ class PokerGame:
         active_players = [p for p in self.players if not p.folded]
 
         if len(active_players) == 1:
-            print(f"{active_players[0].name} wins the pot of {self.pot} chips!")
-            self.reset_game()
+            text = f"{active_players[0].name} wins the pot of {self.pot} chips!"
+            active_players[0].chips += self.pot
+            self.showcard = True
+            self.ask_reset_game(text)
             return
 
         if self._all_bets_equal() and all(player.checked or player.folded for player in active_players):
             self._reset_checked_status()
             if self.turn == "Pre-Flop":
                 self.turn = "Flop"
+
             elif self.turn == "Flop":
+                print("Flop")
                 self.community_cards.extend([self.deck.draw() for _ in range(3)])
                 self.turn = "Turn"
+
             elif self.turn == "Turn":
+                print("Turn")
                 self.community_cards.append(self.deck.draw())
                 self.turn = "River"
+
             elif self.turn == "River":
+                print("River")
                 self.community_cards.append(self.deck.draw())
                 self.turn = "Showdown"
+
             elif self.turn == "Showdown":
+                self.turn = "ShowCard"
+                print("Showdown")
                 hand1 = self.players[0].hand
                 hand2 = self.players[1].hand
                 result = HandEvaluator.compare_hands(hand1, hand2)
+                
                 if result[1] == "hand1":
                     self.players[1].fold()
                     self.players[0].add_chips(self.pot)
-                    print("Player 1 Won")
-                    print(self.players[0].chips)
+                    text = f"{self.players[0].name} wins the pot of {self.pot} chips!"
                     
                 elif result[1] == "hand2":
                     self.players[0].fold()
                     self.players[1].add_chips(self.pot)
-                    print("Player 2 Won")
-                    print(self.players[1].chips)
+                    text = f"{self.players[1].name} wins the pot of {self.pot} chips!"
 
                 elif result[1] == "tie":
                     players = self.get_all_players()
                     amount = self.pot // len(players)
                     for player in players:
                         player.add_chips(amount)
+                    text = f"All player tied! The pot of {self.pot} chips is split!"
+                self.showcard = True
+                self.ask_reset_game(text)
 
-                self.reset_game()
+    
+    def ask_reset_game(self, text):
+        if self.reset_in_progress:
+            return
+
+        self.reset_in_progress = True
+
+        root = tk.Tk()
+        root.withdraw()
+        root.attributes('-topmost', True)
+
+        result = messagebox.askyesno(f"{text}\nContinue Game", "Do you want to continue the game?", parent=root)
+        root.destroy()
+
+        if result:
+            threading.Timer(3.0, self.reset_game).start()  # Start the reset after a delay
+
+        self.reset_in_progress = False  # Reset the flag after the decision is made
 
     def _all_bets_equal(self):
         max_bet = max(self.bets.values())
@@ -343,10 +392,12 @@ class PokerGame:
         self.pot += amount
 
     def show_popup(self, title, message):
-        root = tk.Tk()
-        root.withdraw()
-        messagebox.showerror(title, message)
-        root.destroy()
+        popup_root = tk.Tk()
+        popup_root.withdraw()
+        popup_root.attributes("-topmost", True)
+
+        messagebox.showerror(title, message, parent=popup_root)
+        popup_root.destroy()
 
     @staticmethod
     def convert_name(card: Card):
