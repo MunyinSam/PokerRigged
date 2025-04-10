@@ -5,6 +5,7 @@ from itertools import islice
 import time
 from settings import Config
 from component import *
+from treys import Card as TreysCard, Evaluator, Deck as TreysDeck
 
 class HandEvaluator:
 
@@ -233,25 +234,54 @@ class HandEvaluator:
 
         return "It's a tie!", "tie"
 
+    
+    @staticmethod
+    def calculate_winrate(hand1, community_cards, num_simulations=20000):
+        evaluator = Evaluator()
 
-hand1 = [
-    Card('5', '♥'),
-    Card('4', '♠'),
-    Card('7', '♦'),
-    Card('9', '♣'),
-    Card('4', '♣'),
-    Card('Q', '♦'),
-    Card('5', '♠')
-]
+        # Sanity check
+        if len(hand1) != 2:
+            raise ValueError("Your hand must contain exactly 2 cards.")
+        if len(community_cards) > 5:
+            raise ValueError("Community cards cannot exceed 5.")
 
-hand2 = [
-    Card('5', '♥'),
-    Card('4', '♠'),
-    Card('7', '♦'),
-    Card('9', '♣'),
-    Card('4', '♣'),
-    Card('3', '♥'),
-    Card('Q', '♥')
-]
+        known_cards = hand1 + community_cards
+        known_card_strs = set(repr(c) for c in known_cards)
 
-print(HandEvaluator.compare_hands(hand1,hand2))
+        # Build custom deck minus known cards
+        full_deck = Deck()
+        full_deck.cards = [card for card in full_deck.cards if repr(card) not in known_card_strs]
+
+        wins = 0
+        ties = 0
+
+        for _ in range(num_simulations):
+            sim_deck = full_deck.cards[:]
+            random.shuffle(sim_deck)
+
+            # Draw random opponent hand (2 cards)
+            opp_hand = sim_deck[:2]
+
+            # Draw remaining community cards
+            missing = 5 - len(community_cards)
+            board_fill = sim_deck[2:2 + missing]
+            full_board = community_cards + board_fill
+
+            # Convert to treys
+            hand1_treys = [c.to_treys() for c in hand1]
+            hand2_treys = [c.to_treys() for c in opp_hand]
+            board_treys = [c.to_treys() for c in full_board]
+
+            # Evaluate
+            hand1_score = evaluator.evaluate(hand1_treys, board_treys)
+            hand2_score = evaluator.evaluate(hand2_treys, board_treys)
+
+            if hand1_score < hand2_score:
+                wins += 1
+            elif hand1_score == hand2_score:
+                ties += 1
+            # else: loss
+
+        return round(100 * (wins + ties / 2) / num_simulations, 2)
+
+

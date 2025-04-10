@@ -5,6 +5,7 @@ from collections import Counter
 from itertools import islice
 import time
 from settings import Config as cf
+from treys import Card as TreysCard, Evaluator, Deck as TreysDeck
 
 
 class Button:
@@ -89,6 +90,24 @@ class Card:
 
     def __repr__(self):
         return f"{self.rank}{self.suit}"
+
+    def to_treys(self):
+        rank_map = {
+            '2': '2', '3': '3', '4': '4', '5': '5', '6': '6',
+            '7': '7', '8': '8', '9': '9', 'J': 'J', 'Q': 'Q',
+            'K': 'K', 'A': 'A'
+        }
+        suit_map = {'♠': 's', '♥': 'h', '♦': 'd', '♣': 'c'}
+
+        # Handle '10' as a special case
+        if self.rank == '10':
+            rank_str = 'T'
+        else:
+            rank_str = rank_map[self.rank]
+
+        suit_str = suit_map[self.suit]
+
+        return TreysCard.new(f"{rank_str}{suit_str}")
 
 class Deck:
     ranks = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']

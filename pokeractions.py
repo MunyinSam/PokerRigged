@@ -78,6 +78,10 @@ class PlayerActions:
             print("Full hand: ", full_hand)
             print("Evaluated_hand: ", evaluated_hand)
             print("----------------")
+        
+        winrate = HandEvaluator.calculate_winrate(self.game_state.get_all_players()[0].hand, self.game_state.get_community_cards())
+        message = f"Estimated winrate: {winrate}%"
+        self.show_popup_info("Winrate", message)
 
     def show_popup(self, title, message):
         popup_root = tk.Tk()
@@ -85,6 +89,14 @@ class PlayerActions:
         popup_root.attributes("-topmost", True)
 
         messagebox.showerror(title, message, parent=popup_root)
+        popup_root.destroy()
+
+    def show_popup_info(self, title, message):
+        popup_root = tk.Tk()
+        popup_root.withdraw()
+        popup_root.attributes("-topmost", True)
+
+        messagebox.showinfo(title, message, parent=popup_root)
         popup_root.destroy()
 
 class PlayerManager:
@@ -194,7 +206,7 @@ class PokerGame:
 
         # Reset players
         for player in self.players:
-            player.folded = False            # Marks folded = False
+            player.folded = False      # Marks folded = False
             player.checked = False     # Important for check logic
             player.hand = []           # Clear old hand
 
@@ -339,7 +351,7 @@ class PokerGame:
                 hand1 = self.players[0].hand
                 hand2 = self.players[1].hand
                 result = HandEvaluator.compare_hands(hand1, hand2)
-                
+                text = ""
                 if result[1] == "hand1":
                     self.players[1].fold()
                     self.players[0].add_chips(self.pot)
@@ -374,9 +386,9 @@ class PokerGame:
         root.destroy()
 
         if result:
-            threading.Timer(3.0, self.reset_game).start()  # Start the reset after a delay
+            threading.Timer(4.0, self.reset_game).start()
 
-        self.reset_in_progress = False  # Reset the flag after the decision is made
+        self.reset_in_progress = False
 
     def _all_bets_equal(self):
         max_bet = max(self.bets.values())

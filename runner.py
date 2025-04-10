@@ -112,8 +112,6 @@ class Game:
         self.load_background()
         self.create_buttons()
 
-        
-
     def setup_fonts(self):
         self.font_body = pg.font.Font(cf.font_body, cf.font_body_size)
         self.font_small = pg.font.Font(cf.font_body, 20)
@@ -208,13 +206,23 @@ class Game:
         self.display_players()
         self.display_pot()
 
-        # Display Bot Thinking (if applicable)
-        # self.display_bot_thinking()
 
     def display_turn_text(self):
-        turn_text = self.font_body.render(f"{self.game_state.get_player_turn().name} Turn", True, (255, 255, 255))
-        turn_text_rect = turn_text.get_rect(center=(self.screen.get_width() / 2, 50))
-        self.screen.blit(turn_text, turn_text_rect)
+        label_font = pg.font.Font(cf.font_body, 40)
+        turn_text = label_font.render(f"{self.game_state.get_player_turn().name} Turn", True, (255, 255, 255))
+        label_rect = turn_text.get_rect(center=(self.screen.get_width() / 2, 50))
+        
+        padding_height = 10
+        padding_width = 40
+        bg_rect = pg.Rect(
+            label_rect.left - padding_width,
+            label_rect.top - padding_height,
+            label_rect.width + 2 * padding_width,
+            label_rect.height + 2 * padding_height
+        )
+        
+        pg.draw.rect(self.screen, (50, 50, 50), bg_rect, border_radius=12)
+        self.screen.blit(turn_text, label_rect)
 
     def display_buttons(self):
         # Buttons related to game actions
@@ -233,23 +241,21 @@ class Game:
         hand_width = len(players[0].hand) * (card_width + 20) - 20
         hand_height = card_height + 40
 
-        # Draw player's hand
         self.draw_hand(players[0], x_left, y_bottom1, card_width, card_height, hand_width, hand_height)
 
-        # Draw opponent's hand
-        x_right = cf.width - (len(players[1].hand) * 120) - 50
-        self.bot_hand(players[1], x_right, y_bottom1 - 150, card_width, card_height, hand_width, hand_height)
+        center_x = self.screen_width // 2
+        top_y = 140
+        self.bot_hand(players[1], self.screen_width - 250, top_y, card_width, card_height, hand_width, hand_height)
 
     def draw_hand(self, player, x_left, y_bottom, card_width, card_height, hand_width, hand_height):
-        # Draw border around player's hand
         border_padding_x, border_padding_y = 50, 20
         border_rect = pg.Rect(
             x_left - border_padding_x, y_bottom - border_padding_y,
             hand_width + border_padding_x * 2, hand_height + border_padding_y
         )
-        pg.draw.rect(self.screen, (255, 255, 255), border_rect, 4)
+        pg.draw.rect(self.screen, (80, 80, 80), border_rect, border_radius=12)
+        pg.draw.rect(self.screen, (255, 255, 255), border_rect, 2, border_radius=12)
 
-        # Draw player's cards
         for card in player.hand:
             card_name = PokerGame.convert_name(card)
             card_image = pg.image.load(f"./picture/PNG-cards-1.3/{card_name}")
@@ -257,22 +263,31 @@ class Game:
             self.screen.blit(card_image, (x_left, y_bottom))
             x_left += card_width + 20
 
-        # Draw label for player's hand
         label_font = pg.font.Font(cf.font_body, 20)
-        label_surface = label_font.render("Your Hand", True, (255, 255, 255))
+        label_text = f"{player.name} Chips: {player.chips}"
+        label_surface = label_font.render(label_text, True, (255, 255, 255))
         label_rect = label_surface.get_rect(center=(border_rect.centerx, border_rect.bottom - 20))
+
+        padding = 8
+        bg_rect = pg.Rect(
+            label_rect.left - padding,
+            label_rect.top - padding,
+            label_rect.width + 2 * padding,
+            label_rect.height + 2 * padding
+        )
+        pg.draw.rect(self.screen, (80, 80, 80), bg_rect, border_radius=10)
         self.screen.blit(label_surface, label_rect)
+
     
     def bot_hand(self, player, x_left, y_bottom, card_width, card_height, hand_width, hand_height):
-        # Draw border around player's hand
         border_padding_x, border_padding_y = 50, 20
         border_rect = pg.Rect(
             x_left - border_padding_x, y_bottom - border_padding_y,
             hand_width + border_padding_x * 2, hand_height + border_padding_y
         )
-        pg.draw.rect(self.screen, (255, 255, 255), border_rect, 4)
+        pg.draw.rect(self.screen, (80, 80, 80), border_rect, border_radius=12)
+        pg.draw.rect(self.screen, (255, 255, 255), border_rect, 2, border_radius=12)
 
-        # Draw player's cards
         for card in player.hand:
             card_name = PokerGame.convert_name(card)
 
@@ -286,8 +301,18 @@ class Game:
 
         # Draw label for player's hand
         label_font = pg.font.Font(cf.font_body, 20)
-        label_surface = label_font.render(f"{player.name} Hand", True, (255, 255, 255))
+        label_text = f"{player.name} Chips: {player.chips}"
+        label_surface = label_font.render(label_text, True, (255, 255, 255))
         label_rect = label_surface.get_rect(center=(border_rect.centerx, border_rect.bottom - 20))
+
+        padding = 8
+        bg_rect = pg.Rect(
+            label_rect.left - padding,
+            label_rect.top - padding,
+            label_rect.width + 2 * padding,
+            label_rect.height + 2 * padding
+        )
+        pg.draw.rect(self.screen, (80, 80, 80), bg_rect, border_radius=10)
         self.screen.blit(label_surface, label_rect)
 
     def display_community_cards(self):
@@ -295,7 +320,7 @@ class Game:
         if self.game_state.turn == "Pre-Flop":
             return
         if len(self.community_cards) != 0:
-            x, y = 197, 245
+            x, y = 197, 352
             for card in self.community_cards:
                 card_name = PokerGame.convert_name(card)
                 card_image = pg.image.load(f"./picture/PNG-cards-1.3/{card_name}")
@@ -324,8 +349,19 @@ class Game:
 
     def display_pot(self):
         pot = self.game_state.get_pot()
-        label_font = pg.font.Font(cf.font_body, 40)
+        label_font = pg.font.Font(cf.font_body, 24)
         label_surface = label_font.render(f"Pot Total: {pot}", True, (255, 255, 255))
-        label_rect = label_surface.get_rect(center=(self.screen.get_width() / 2, 180))
+        label_rect = label_surface.get_rect(center=(self.screen.get_width() / 2, 300))
+
+        padding = 10
+        bg_rect = pg.Rect(
+            label_rect.left - padding,
+            label_rect.top - padding,
+            label_rect.width + 2 * padding,
+            label_rect.height + 2 * padding
+        )
+
+        pg.draw.rect(self.screen, (50, 50, 50), bg_rect, border_radius=12)
         self.screen.blit(label_surface, label_rect)
+
 
