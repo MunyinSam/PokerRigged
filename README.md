@@ -1,2 +1,3 @@
 # PokerRigged
-Third Time Fixing this project
+
+Run in main.py
