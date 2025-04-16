@@ -8,6 +8,7 @@ class Config:
     font_title_size = 100
     font_body = "./font/JqkasWild-w1YD6.ttf"
     font_body_size = 30
+    font_log = "./font/times.ttf"
 
     # Button Configurations
     button_width = 200

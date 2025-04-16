@@ -185,24 +185,28 @@ class PokerGame:
     def start_game(self):
         self.deck = Deck()
         self.turn = "Flop"
-        self.players = [Player('You', 1000), Bot('Bot', 1000)]
+        self.players = [Player('Player', 975), Bot('Bot', 975)]
         self.player_turn = self.players[0]
         self.community_cards = []
-        self.pot = 0
+        self.pot = 50
         self.bets = {player: 0 for player in self.players}
         self.bot_thinking = False
         self.showcard = False
+        self.log = []
 
         self.player_manager = PlayerManager(self.players[0], self)
         self.bot_manager = BotManager(self.players[1], self)
 
         self.give_out_cards()
 
+        self.add_log("Game Start")
+        self.add_log("Game Turn: Preflop")
+
     def reset_game(self):
         # Reset the deck for a new round
-        print("called")
         self.deck = Deck()
         self.showcard = False
+        self.log = []
 
         # Reset players
         for player in self.players:
@@ -211,7 +215,7 @@ class PokerGame:
             player.hand = []           # Clear old hand
 
         active_players = [p for p in self.players if not p.folded]
-        print("players: ", [player.folded for player in self.players])
+        # print("players: ", [player.folded for player in self.players])
 
         # Reset game state
         self.turn = "Pre-Flop"
@@ -223,6 +227,9 @@ class PokerGame:
 
         # Deal new cards
         self.give_out_cards()
+
+        self.add_log("Game Reset")
+        self.add_log("Game Turn: Preflop")
 
 
     def give_out_cards(self):
@@ -239,25 +246,30 @@ class PokerGame:
     def get_all_players(self):
         return self.players
 
+    def get_log(self):
+        return self.log
+
     def change_turn(self):
-        print("Turn changed")
         active_players = [p for p in self.players if not p.folded]
 
         if len(active_players) == 1:
             text = f"{active_players[0].name} wins the pot of {self.pot} chips!"
             active_players[0].chips += self.pot
             self.showcard = True
+            self.add_log(text)
             self.ask_reset_game(text)
             return
 
         current_index = active_players.index(self.player_turn) if self.player_turn in active_players else -1
         next_index = (current_index + 1) % len(active_players)
         self.player_turn = active_players[next_index]
+        self.add_log(f"{self.player_turn.name}'s Turn")
 
         if self.player_turn == self.players[1]:
             self.bot_thinking = True
             self.bot_manager.take_action()
             self.bot_thinking = False
+
 
     def get_player_turn(self):
         return self.player_turn
@@ -309,6 +321,7 @@ class PokerGame:
             text = f"{active_players[0].name} wins the pot of {self.pot} chips!"
             active_players[0].chips += self.pot
             self.showcard = True
+            self.add_log(text)
             self.ask_reset_game(text)
             return
 
@@ -322,32 +335,39 @@ class PokerGame:
             text = f"{active_players[0].name} wins the pot of {self.pot} chips!"
             active_players[0].chips += self.pot
             self.showcard = True
+            self.add_log(text)
             self.ask_reset_game(text)
             return
 
         if self._all_bets_equal() and all(player.checked or player.folded for player in active_players):
             self._reset_checked_status()
+
             if self.turn == "Pre-Flop":
                 self.turn = "Flop"
 
+                self.add_log("Game Turn: Preflop")
+
             elif self.turn == "Flop":
-                print("Flop")
                 self.community_cards.extend([self.deck.draw() for _ in range(3)])
                 self.turn = "Turn"
 
+                self.add_log("Game Turn: Flop")
+
             elif self.turn == "Turn":
-                print("Turn")
                 self.community_cards.append(self.deck.draw())
                 self.turn = "River"
 
+                self.add_log("Game Turn: Turn")
+
             elif self.turn == "River":
-                print("River")
                 self.community_cards.append(self.deck.draw())
                 self.turn = "Showdown"
 
+                self.add_log("Game Turn: River")
+
             elif self.turn == "Showdown":
                 self.turn = "ShowCard"
-                print("Showdown")
+                self.add_log("Game Turn: Showdown")
                 hand1 = self.players[0].hand
                 hand2 = self.players[1].hand
                 result = HandEvaluator.compare_hands(hand1, hand2)
@@ -369,6 +389,7 @@ class PokerGame:
                         player.add_chips(amount)
                     text = f"All player tied! The pot of {self.pot} chips is split!"
                 self.showcard = True
+                self.add_log(text)
                 self.ask_reset_game(text)
 
     
@@ -386,9 +407,13 @@ class PokerGame:
         root.destroy()
 
         if result:
-            threading.Timer(4.0, self.reset_game).start()
+            def reset_wrapper():
+                self.reset_game()
+                self.reset_in_progress = False
+            threading.Timer(4.0, reset_wrapper).start() # from chatGPT it will wait for the reset_wrapper to finish first
+        else:
+            self.reset_in_progress = False
 
-        self.reset_in_progress = False
 
     def _all_bets_equal(self):
         max_bet = max(self.bets.values())
@@ -410,6 +435,9 @@ class PokerGame:
 
         messagebox.showerror(title, message, parent=popup_root)
         popup_root.destroy()
+
+    def add_log(self, text):
+        self.log.append(text)
 
     @staticmethod
     def convert_name(card: Card):

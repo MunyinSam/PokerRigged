@@ -205,11 +205,11 @@ class Game:
         self.display_community_cards()
         self.display_players()
         self.display_pot()
-
+        self.display_log()
 
     def display_turn_text(self):
         label_font = pg.font.Font(cf.font_body, 40)
-        turn_text = label_font.render(f"{self.game_state.get_player_turn().name} Turn", True, (255, 255, 255))
+        turn_text = label_font.render(f"{self.game_state.turn}", True, (255, 255, 255))
         label_rect = turn_text.get_rect(center=(self.screen.get_width() / 2, 50))
         
         padding_height = 10
@@ -363,5 +363,30 @@ class Game:
 
         pg.draw.rect(self.screen, (50, 50, 50), bg_rect, border_radius=12)
         self.screen.blit(label_surface, label_rect)
+
+    def display_log(self):
+        log = self.game_state.get_log()
+        latest_logs = log[-10:]  # Show only the last 10 messages
+
+        # Chat box dimensions
+        box_width = 250
+        line_height = 18
+        padding = 10
+        total_lines = len(latest_logs)
+        box_height = line_height * 10 + 2 * padding
+
+        x = 10
+        y = self.screen.get_height() - box_height - 470  # 20px above bottom
+
+        # Draw chat box background
+        chat_box_rect = pg.Rect(x, y, box_width, box_height)
+        pg.draw.rect(self.screen, (50, 50, 50), chat_box_rect, border_radius=12)
+        pg.draw.rect(self.screen, (100, 100, 100), chat_box_rect, 2, border_radius=12)
+
+        # Render text lines
+        label_font = pg.font.Font(cf.font_log, 16)
+        for i, message in enumerate(reversed(latest_logs)):
+            label_surface = label_font.render(message, True, (255, 255, 255))
+            self.screen.blit(label_surface, (x + padding, y + padding + i * line_height))
 
 
