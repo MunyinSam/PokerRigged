@@ -6,6 +6,7 @@
 To run the application, ensure you have the following dependencies installed:
 
 pygame>= 2.5.2
+treys>=0.1.8
 
 Note: the requirement.txt isnt fully necessary I'm in a testing period
 
