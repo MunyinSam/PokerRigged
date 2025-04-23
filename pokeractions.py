@@ -208,18 +208,20 @@ class PokerGame:
 
     def reset_game(self):
         # Reset the deck for a new round
+        self.data.save_to_csv()
+        self.data = Data() # reset Data
+
         self.deck = Deck()
         self.showcard = False
         self.log = []
 
         # Reset players
         for player in self.players:
-            player.folded = False      # Marks folded = False
-            player.checked = False     # Important for check logic
-            player.hand = []           # Clear old hand
+            player.folded = False
+            player.checked = False
+            player.hand = []
 
         active_players = [p for p in self.players if not p.folded]
-        # print("players: ", [player.folded for player in self.players])
 
         # Reset game state
         self.turn = "Pre-Flop"
@@ -258,11 +260,6 @@ class PokerGame:
         active_players = [p for p in self.players if not p.folded]
 
         if len(active_players) == 1:
-            # text = f"{active_players[0].name} wins the pot of {self.pot} chips!"
-            # active_players[0].chips += self.pot
-            # self.showcard = True
-            # self.add_log(text)
-            # self.ask_reset_game(text)
             self.win_pot(active_players[0])
             return
 
@@ -294,6 +291,15 @@ class PokerGame:
             self.show_popup("Invalid Action", "Not enough chips to raise.")
             return
         self._place_bet(amount)
+        self.data.number_of_raises += 1
+        if self.turn == "Pre-Flop":
+            self.data.preflop_raises += 1
+        elif self.turn == "Flop":
+            self.data.flop_raises += 1
+        elif self.turn == "Turn":
+            self.data.turn_raises += 1
+        elif self.turn == "River":
+            self.data.river_raises += 1
         self.change_turn()
 
     def check(self):
@@ -301,6 +307,15 @@ class PokerGame:
             self.show_popup("Invalid Action", "Cannot check, must call or raise.")
             return
         self.player_turn.checked = True
+        self.data.number_of_checks += 1
+        if self.turn == "Pre-Flop":
+            self.data.preflop_checks += 1
+        elif self.turn == "Flop":
+            self.data.flop_checks += 1
+        elif self.turn == "Turn":
+            self.data.turn_checks += 1
+        elif self.turn == "River":
+            self.data.river_checks += 1
         self.change_turn()
 
         if self.all_player_checked():
@@ -313,9 +328,35 @@ class PokerGame:
             self.show_popup("Invalid Action", "Not enough chips to call.")
             return
         self._place_bet(call_amount)
+        self.data.number_of_calls += 1
+        if self.turn == "Pre-Flop":
+            self.data.preflop_calls += 1
+        elif self.turn == "Flop":
+            self.data.flop_calls += 1
+        elif self.turn == "Turn":
+            self.data.turn_calls += 1
+        elif self.turn == "River":
+            self.data.river_calls += 1
         self.change_turn()
 
         if all(self.bets[player] == max_bet for player in self.players if not player.folded):
+            self.next_phase()
+
+    def fold(self):
+        self.player_turn.fold()
+        self.data.number_of_folds += 1
+        if self.turn == "Pre-Flop":
+            self.data.preflop_folds += 1
+        elif self.turn == "Flop":
+            self.data.flop_folds += 1
+        elif self.turn == "Turn":
+            self.data.turn_folds += 1
+        elif self.turn == "River":
+            self.data.river_folds += 1
+        self.change_turn()
+
+        active_players = [p for p in self.players if not p.folded]
+        if all(self.bets[player] == max(self.bets.values()) for player in self.players if not player.folded):
             self.next_phase()
 
     def win_pot(self, player):
@@ -324,39 +365,20 @@ class PokerGame:
         self.showcard = True
         text = f"{player.name} wins the pot of {self.pot} chips!"
         self.add_log(text)
+        if player == self.players[0]:
+            self.data.total_wins += 1
+            self.data.total_chips_won += self.pot
+        else:
+            self.data.total_losses += 1
+            self.data.total_chips_lost += self.pot
         self.ask_reset_game(text)
         return
-
-    def fold(self):
-        self.player_turn.fold()
-        self.change_turn()
-
-        active_players = [p for p in self.players if not p.folded]
-        # if len(active_players) == 1:
-        #     # text = f"{active_players[0].name} wins the pot of {self.pot} chips!"
-        #     # active_players[0].chips += self.pot
-        #     # self.showcard = True
-        #     # self.add_log(text)
-        #     # self.ask_reset_game(text)
-        #     # return
-        #     print("1")
-        #     self.win_pot(active_players[0])
-        #     return
-
-        if all(self.bets[player] == max(self.bets.values()) for player in self.players if not player.folded):
-            self.next_phase()
 
     def next_phase(self):
         print("next phase")
         active_players = [p for p in self.players if not p.folded]
 
         if len(active_players) == 1:
-            # text = f"{active_players[0].name} wins the pot of {self.pot} chips!"
-            # active_players[0].chips += self.pot
-            # self.showcard = True
-            # self.add_log(text)
-            # self.ask_reset_game(text)
-            # return
             self.win_pot(active_players[0])
             return
 
@@ -389,11 +411,13 @@ class PokerGame:
             elif self.turn == "Showdown":
                 self.turn = "ShowCard"
                 self.add_log("Game Turn: Showdown")
+                self.data.went_to_showdown += 1
                 hand1 = self.players[0].hand
                 hand2 = self.players[1].hand
                 result = HandEvaluator.compare_hands(hand1, hand2)
                 text = ""
                 if result[1] == "hand1":
+                    self.data.won_at_showdown += 1
                     self.players[1].fold()
                     self.win_pot(self.players[0])
                     
