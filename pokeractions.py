@@ -176,6 +176,8 @@ class BotManager:
             print(f"Bot action failed: {e}")
             self.game.fold()
 
+from data import Data
+
 class PokerGame:
     def __init__(self, screen):
         self.screen = screen
@@ -201,6 +203,8 @@ class PokerGame:
 
         self.add_log("Game Start")
         self.add_log("Game Turn: Preflop")
+
+        self.data = Data()
 
     def reset_game(self):
         # Reset the deck for a new round
@@ -250,14 +254,16 @@ class PokerGame:
         return self.log
 
     def change_turn(self):
+        print("change turn")
         active_players = [p for p in self.players if not p.folded]
 
         if len(active_players) == 1:
-            text = f"{active_players[0].name} wins the pot of {self.pot} chips!"
-            active_players[0].chips += self.pot
-            self.showcard = True
-            self.add_log(text)
-            self.ask_reset_game(text)
+            # text = f"{active_players[0].name} wins the pot of {self.pot} chips!"
+            # active_players[0].chips += self.pot
+            # self.showcard = True
+            # self.add_log(text)
+            # self.ask_reset_game(text)
+            self.win_pot(active_players[0])
             return
 
         current_index = active_players.index(self.player_turn) if self.player_turn in active_players else -1
@@ -312,31 +318,46 @@ class PokerGame:
         if all(self.bets[player] == max_bet for player in self.players if not player.folded):
             self.next_phase()
 
+    def win_pot(self, player):
+        print("called")
+        player.chips += self.pot
+        self.showcard = True
+        text = f"{player.name} wins the pot of {self.pot} chips!"
+        self.add_log(text)
+        self.ask_reset_game(text)
+        return
+
     def fold(self):
         self.player_turn.fold()
         self.change_turn()
 
         active_players = [p for p in self.players if not p.folded]
-        if len(active_players) == 1:
-            text = f"{active_players[0].name} wins the pot of {self.pot} chips!"
-            active_players[0].chips += self.pot
-            self.showcard = True
-            self.add_log(text)
-            self.ask_reset_game(text)
-            return
+        # if len(active_players) == 1:
+        #     # text = f"{active_players[0].name} wins the pot of {self.pot} chips!"
+        #     # active_players[0].chips += self.pot
+        #     # self.showcard = True
+        #     # self.add_log(text)
+        #     # self.ask_reset_game(text)
+        #     # return
+        #     print("1")
+        #     self.win_pot(active_players[0])
+        #     return
 
         if all(self.bets[player] == max(self.bets.values()) for player in self.players if not player.folded):
             self.next_phase()
 
     def next_phase(self):
+        print("next phase")
         active_players = [p for p in self.players if not p.folded]
 
         if len(active_players) == 1:
-            text = f"{active_players[0].name} wins the pot of {self.pot} chips!"
-            active_players[0].chips += self.pot
-            self.showcard = True
-            self.add_log(text)
-            self.ask_reset_game(text)
+            # text = f"{active_players[0].name} wins the pot of {self.pot} chips!"
+            # active_players[0].chips += self.pot
+            # self.showcard = True
+            # self.add_log(text)
+            # self.ask_reset_game(text)
+            # return
+            self.win_pot(active_players[0])
             return
 
         if self._all_bets_equal() and all(player.checked or player.folded for player in active_players):
@@ -374,13 +395,11 @@ class PokerGame:
                 text = ""
                 if result[1] == "hand1":
                     self.players[1].fold()
-                    self.players[0].add_chips(self.pot)
-                    text = f"{self.players[0].name} wins the pot of {self.pot} chips!"
+                    self.win_pot(self.players[0])
                     
                 elif result[1] == "hand2":
                     self.players[0].fold()
-                    self.players[1].add_chips(self.pot)
-                    text = f"{self.players[1].name} wins the pot of {self.pot} chips!"
+                    self.win_pot(self.players[1])
 
                 elif result[1] == "tie":
                     players = self.get_all_players()
@@ -388,6 +407,7 @@ class PokerGame:
                     for player in players:
                         player.add_chips(amount)
                     text = f"All player tied! The pot of {self.pot} chips is split!"
+
                 self.showcard = True
                 self.add_log(text)
                 self.ask_reset_game(text)
