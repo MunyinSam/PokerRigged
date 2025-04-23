@@ -6,6 +6,7 @@
 To run the application, ensure you have the following dependencies installed:
 
 pygame>= 2.5.2
+treys>=0.1.8
 
 Note: the requirement.txt isnt fully necessary I'm in a testing period
 
@@ -26,6 +27,8 @@ cd PokerRigged
 2. Create virtual environment using this command.
 ```
 python -m venv env
+or
+python3 -m venv env
 ```
 
 4. Activate the virtual environment
