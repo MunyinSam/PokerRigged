@@ -26,6 +26,8 @@ cd PokerRigged
 2. Create virtual environment using this command.
 ```
 python -m venv env
+or
+python3 -m venv env
 ```
 
 4. Activate the virtual environment
