@@ -4,8 +4,9 @@ from collections import Counter
 from itertools import islice
 import time
 from settings import Config
-from component import *
+from cards import Card, Deck
 from treys import Card as TreysCard, Evaluator, Deck as TreysDeck
+
 
 class HandEvaluator:
 
@@ -217,20 +218,22 @@ class HandEvaluator:
 
         # Compare hand rankings
         if hand_rankings[hand1_type] > hand_rankings[hand2_type]:
-            return f"Hand 1 wins with {hand1_type} ({hand1_cards})"
+            return (f"You win with {hand1_type} ({hand1_cards})", "hand1")
         elif hand_rankings[hand1_type] < hand_rankings[hand2_type]:
-            return f"Hand 2 wins with {hand2_type} ({hand2_cards})"
+            return (f"Bot win with {hand2_type} ({hand2_cards})", "hand2")
 
         # If hand types are the same, compare card values
         hand1_values = sorted([HandEvaluator.rank_to_value(card.rank) for card in hand1_cards], reverse=True)
         hand2_values = sorted([HandEvaluator.rank_to_value(card.rank) for card in hand2_cards], reverse=True)
+        print("hand1_values", hand1_values)
+        print("hand2_values", hand2_values)
 
         # Compare values one by one
         for v1, v2 in zip(hand1_values, hand2_values):
             if v1 > v2:
-                return f"Hand 1 wins with {hand1_type} ({hand1_cards})", "hand1"
+                return (f"You win with {hand1_type} ({hand1_cards})", "hand1")
             elif v1 < v2:
-                return f"Hand 2 wins with {hand2_type} ({hand2_cards})", "hand2"
+                return (f"Bot win with {hand2_type} ({hand2_cards})", "hand2")
 
         return "It's a tie!", "tie"
 

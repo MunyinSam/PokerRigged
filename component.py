@@ -6,6 +6,11 @@ from itertools import islice
 import time
 from settings import Config as cf
 from treys import Card as TreysCard, Evaluator, Deck as TreysDeck
+import tkinter as tk
+from tkinter import messagebox, simpledialog
+import threading
+from handeval import HandEvaluator
+from cards import Card, Deck
 
 
 class Button:
@@ -82,44 +87,6 @@ class Display:
         cardback = pygame.image.load(full_path)
         cardback = pygame.transform.scale(deck, (100, 150))
         self.screen.blit(cardback, (x, y))
-
-class Card:
-    def __init__(self, rank, suit):
-        self.rank = rank
-        self.suit = suit
-
-    def __repr__(self):
-        return f"{self.rank}{self.suit}"
-
-    def to_treys(self):
-        rank_map = {
-            '2': '2', '3': '3', '4': '4', '5': '5', '6': '6',
-            '7': '7', '8': '8', '9': '9', 'J': 'J', 'Q': 'Q',
-            'K': 'K', 'A': 'A'
-        }
-        suit_map = {'♠': 's', '♥': 'h', '♦': 'd', '♣': 'c'}
-
-        # Handle '10' as a special case
-        if self.rank == '10':
-            rank_str = 'T'
-        else:
-            rank_str = rank_map[self.rank]
-
-        suit_str = suit_map[self.suit]
-
-        return TreysCard.new(f"{rank_str}{suit_str}")
-
-class Deck:
-    ranks = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
-    suits = ['♠', '♥', '♦', '♣']
-
-    def __init__(self):
-        self.cards = [Card(rank, suit) for suit in self.suits for rank in self.ranks]
-
-    def draw(self):
-        card = random.choice(self.cards)
-        self.cards.remove(card)
-        return card
 
 class Player:
     def __init__(self, name, chips=1000):
@@ -332,6 +299,7 @@ class BotManager:
                 self.game.raise_bet(self.bot.chips)
             elif action == 'raise':
                 raise_amount = min(50, self.bot.chips)
+                self.bot_actions = f"raise {raise_amount}"
                 self.game.raise_bet(raise_amount)
         except ValueError as e:
             print(f"Bot action failed: {e}")

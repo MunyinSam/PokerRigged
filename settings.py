@@ -13,7 +13,7 @@ class Config:
     # Button Configurations
     button_width = 200
     button_height = 50
-    button_width2 = 160
+    button_width2 = 150
     button_height2 = 70
     button_text_color = (255, 255, 255)
     button_color = (0, 0, 0)
@@ -21,5 +21,6 @@ class Config:
 
     # Image Paths
     title_image_path = "./picture/scene/title.png"
-    background_image_path = "./picture/scene/test_table.png"
+    background_image_path = "./picture/scene/test.png"
     deck_image_path = "./picture/scene/cardback.png"
+    pokerchips_image_path = "./picture/scene/pokerchips.png"

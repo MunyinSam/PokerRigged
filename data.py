@@ -3,51 +3,45 @@ import os
 
 class Data:
     def __init__(self):
+        # General round info
         self.rounds_played = 0
-        self.number_of_folds = 0
-        self.number_of_raises = 0
-        self.number_of_calls = 0
-        self.number_of_bets = 0
-        self.number_of_checks = 0
-
-        self.preflop_folds = 0
-        self.preflop_raises = 0
-        self.preflop_calls = 0
-        self.preflop_bets = 0
-        self.preflop_checks = 0
-
-        self.flop_folds = 0
-        self.flop_raises = 0
-        self.flop_calls = 0
-        self.flop_bets = 0
-        self.flop_checks = 0
-
-        self.turn_folds = 0
-        self.turn_raises = 0
-        self.turn_calls = 0
-        self.turn_bets = 0
-        self.turn_checks = 0
-
-        self.river_folds = 0
-        self.river_raises = 0
-        self.river_calls = 0
-        self.river_bets = 0
-        self.river_checks = 0
-
-        self.total_wins = 0
-        self.total_losses = 0
         self.total_chips_won = 0
         self.total_chips_lost = 0
-        self.went_to_showdown = 0
-        self.won_at_showdown = 0
+        self.total_wins = 0
+        self.total_losses = 0
+        self.showdown_reached = 0
+        self.showdown_wins = 0
 
-        self.calculated_winrate_before_game_end = 0
-        self.hand = ""
+        # Player action frequency
+        self.total_folds = 0
+        self.total_calls = 0
+        self.total_raises = 0
+        self.total_checks = 0
+
+        # Winrate tracking
+        self.estimated_winrate = 0.0  # Value shown to player at button press
+
+        # Hand type summary
+        self.winning_hand_type = ""  # e.g. "Pair", "Flush"
+        self.losing_hand_type = ""   # Same as above
+
+        # Stage-specific actions
+        self.preflop_actions = {"fold": 0, "call": 0, "raise": 0, "check": 0}
+        self.flop_actions = {"fold": 0, "call": 0, "raise": 0, "bet": 0, "check": 0}
+        self.turn_actions = {"fold": 0, "call": 0, "raise": 0, "bet": 0, "check": 0}
+        self.river_actions = {"fold": 0, "call": 0, "raise": 0, "bet": 0, "check": 0}
 
     def to_dict(self):
-        return self.__dict__
+        data = self.__dict__.copy()
+        # Flatten stage action dictionaries
+        for stage in ["preflop", "flop", "turn", "river"]:
+            for action, value in data[f"{stage}_actions"].items():
+                data[f"{stage}_{action}"] = value
+            del data[f"{stage}_actions"]
+        return data
 
     def save_to_csv(self, filename='data/poker_data.csv'):
+        print("Saving data to CSV...")
         data_dict = self.to_dict()
         os.makedirs(os.path.dirname(filename), exist_ok=True)
         file_exists = os.path.isfile(filename)
