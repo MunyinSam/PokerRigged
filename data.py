@@ -41,8 +41,8 @@ class Data:
         self.went_to_showdown = 0
         self.won_at_showdown = 0
 
-        self.player_winrate_before_game_end = 0
-        self.hand = None
+        self.calculated_winrate_before_game_end = 0
+        self.hand = ""
 
     def to_dict(self):
         return self.__dict__

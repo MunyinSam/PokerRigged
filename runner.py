@@ -205,7 +205,15 @@ class Game:
         self.display_community_cards()
         self.display_players()
         self.display_pot()
-        self.display_log()
+        # self.display_log()
+
+        self.display_bot_actions()
+
+        if self.game_state.bot_thinking:
+            self.display_bot_thinking()
+
+        if self.game_state.isloading:
+            self.display_loading_screen()
 
     def display_turn_text(self):
         label_font = pg.font.Font(cf.font_body, 40)
@@ -329,11 +337,26 @@ class Game:
                 x += 126
 
     def display_bot_thinking(self):
-        if not self.game_state.bot_thinking:
-            label_font = pg.font.Font(cf.font_body, 20)
-            label_surface = label_font.render("Bot is thinking...", True, (255, 255, 255))
-            label_rect = label_surface.get_rect(center=(self.screen.get_width() / 2, 80))
-            self.screen.blit(label_surface, label_rect)
+        overlay = pg.Surface(self.screen.get_size(), pg.SRCALPHA)
+        overlay.fill((0, 0, 0, 128))  # Black with 50% transparency
+
+        font = pg.font.Font(cf.font_body, 74)  # Large font size
+        text_surface = font.render("Bot is Thinking...", True, (255, 255, 255))  # White text
+        text_rect = text_surface.get_rect(center=(self.screen.get_width() // 2, self.screen.get_height() // 2))
+
+        self.screen.blit(overlay, (0, 0))
+        self.screen.blit(text_surface, text_rect)
+
+    def display_loading_screen(self):
+        overlay = pg.Surface(self.screen.get_size(), pg.SRCALPHA)
+        overlay.fill((0, 0, 0, 128))  # Black with 50% transparency
+
+        font = pg.font.Font(cf.font_body, 74)
+        text_surface = font.render("Loading...", True, (255, 255, 255))
+        text_rect = text_surface.get_rect(center=(self.screen.get_width() // 2, self.screen.get_height() // 2))
+
+        self.screen.blit(overlay, (0, 0))
+        self.screen.blit(text_surface, text_rect)
 
     def display_players(self):
         players = self.game_state.get_all_players()
@@ -389,4 +412,26 @@ class Game:
             label_surface = label_font.render(message, True, (255, 255, 255))
             self.screen.blit(label_surface, (x + padding, y + padding + i * line_height))
 
+    def display_bot_actions(self):
+        bot_actions = self.game_state.get_bot_actions()
+
+        # Set the position for the text bubble
+        bubble_x = 700
+        bubble_y = 45  # Below the "QUIT" button
+        bubble_width = 280
+        bubble_height = 50
+
+        # Render the bot's action text
+        font = pg.font.Font(cf.font_body, 20)  # Use a small font size
+        action_text = f"Bot chooses to {bot_actions}!" if bot_actions else ". . ."
+        text_surface = font.render(action_text, True, (255, 255, 255))  # White text
+        text_rect = text_surface.get_rect(center=(bubble_x + bubble_width // 2, bubble_y + bubble_height // 2))
+
+        # Draw the text bubble (rounded rectangle)
+        bubble_rect = pg.Rect(bubble_x, bubble_y, bubble_width, bubble_height)
+        pg.draw.rect(self.screen, (50, 50, 50), bubble_rect, border_radius=12)  # Background color
+        pg.draw.rect(self.screen, (255, 255, 255), bubble_rect, 2, border_radius=12)  # Border color
+
+        # Draw the text inside the bubble
+        self.screen.blit(text_surface, text_rect)
 

@@ -1,2 +1,2 @@
-pygame==2.5.2
-treys>=0.1.8
+pygame==2.6.1
+treys==0.1.8
