@@ -50,3 +50,4 @@ rounds_played,total_chips_won,total_chips_lost,total_wins,total_losses,showdown_
 4,0,650,0,1,1,0,0,2,2,10,11.92,Flush,High Card,0,1,1,2,0,1,1,2,0,0,0,2,0,0,0,2
 1,150,0,1,0,1,1,0,1,1,10,70.48,Flush,High Card,0,0,0,2,0,0,0,2,0,0,0,2,0,1,1,2
 1,0,150,0,1,0,0,1,0,4,1,56.12,High Card,High Card,1,0,4,1,0,0,0,0,0,0,0,0,0,0,0,0
+1,0,50,0,1,0,0,1,0,0,0,51.83,High Card,High Card,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0

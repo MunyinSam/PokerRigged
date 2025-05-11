@@ -61,9 +61,12 @@ class Menu:
 
     def create_buttons(self):
         button_x = cf.width / 2 - 100
-        self.start_button = self.create_button(button_x, cf.height / 2, "Start Game")
-        self.statistics_button = self.create_button(button_x, cf.height / 2 + 50, "Statistics")
-        self.quit_button = self.create_button(button_x, cf.height / 2 + 100, "Quit")
+        base_y = cf.height / 2
+
+        self.start_button = self.create_button(button_x, base_y, "Start Game")
+        self.statistics_button = self.create_button(button_x, base_y + 50, "Statistics")
+        self.tutorial_button = self.create_button(button_x, base_y + 100, "Tutorial")
+        self.quit_button = self.create_button(button_x, base_y + 150, "Quit")
 
     def create_button(self, x, y, text):
         return Button(
@@ -92,6 +95,7 @@ class Menu:
         self.screen.blit(self.title, (self.title_x, self.title_y))
         self.start_button.draw(self.screen)
         self.statistics_button.draw(self.screen)
+        self.tutorial_button.draw(self.screen)
         self.quit_button.draw(self.screen)
 
     def handle_event(self, event, mouse_pos):
@@ -101,7 +105,13 @@ class Menu:
             pg.quit()
         elif self.is_button_clicked(self.statistics_button, event, mouse_pos):
             self.open_statistics()
+        elif self.is_button_clicked(self.tutorial_button, event, mouse_pos):
+            self.open_tutorial()
         return False
+
+    def open_tutorial(self):
+        import webbrowser
+        webbrowser.open("https://www.youtube.com/watch?v=A-M_EClayII")
 
     def is_button_clicked(self, button, event, mouse_pos):
         return button.is_hovered(mouse_pos) and event.type == pg.MOUSEBUTTONDOWN
