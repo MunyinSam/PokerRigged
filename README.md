@@ -55,3 +55,17 @@ python main.py
 
 
 Run in main.py
+
+## Other Sources
+
+### Youtube:
+
+```
+https://www.youtube.com/watch?v=yEwHW-qGFrE
+```
+
+### UML Diagram:
+
+```
+https://www.figma.com/board/Jy0BgqFlQyyYlj0d4zlDq5/Poker-Cheat?node-id=0-1&p=f&t=LbTJb7t4cwx0xRNW-0
+```
