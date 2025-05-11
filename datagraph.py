@@ -196,7 +196,7 @@ class PokerDataDashboard:
 
     def add_summary_table_tab(self):
         tab = ttk.Frame(self.notebook)
-        self.notebook.add(tab, text="Player Summary Table")
+        self.notebook.add(tab, text="All Data Table")
 
         columns = ("pattern", "rounds", "fold_bet_call_raise", "winrates", "hands_summary")
         tree = ttk.Treeview(tab, columns=columns, show='headings', height=10)
@@ -232,6 +232,44 @@ class PokerDataDashboard:
 
         tree.pack(fill='both', expand=True)
 
+    def add_analysis_summary_tab(self):
+        import pandas as pd
+        tab = ttk.Frame(self.notebook)
+        self.notebook.add(tab, text="Summary Analysis")
+
+        tree = ttk.Treeview(tab, columns=("Metric", "Value"), show="headings", height=8)
+        tree.heading("Metric", text="Metric")
+        tree.heading("Value", text="Value")
+
+        tree.column("Metric", width=200)
+        tree.column("Value", width=150)
+
+        df = self.df
+
+        total_rounds = int(df['rounds_played'].sum())
+        avg_estimated_winrate = round(df['estimated_winrate'].mean(), 2)
+        total_wins = int(df['total_wins'].sum())
+        total_losses = int(df['total_losses'].sum())
+        win_loss_ratio = round(total_wins / total_losses, 2) if total_losses != 0 else "N/A"
+        net_chips = int(df['total_chips_won'].sum() - df['total_chips_lost'].sum())
+        total_showdowns = df['showdown_reached'].sum()
+        total_showdown_wins = df['showdown_wins'].sum()
+        showdown_winrate = round((total_showdown_wins / total_showdowns) * 100, 2) if total_showdowns != 0 else 0
+
+        metrics = {
+            "Total Rounds Played": total_rounds,
+            "Avg Estimated Winrate (%)": avg_estimated_winrate,
+            "Win/Loss Ratio": win_loss_ratio,
+            "Net Chips Gained": net_chips,
+            "Showdown Winrate (%)": showdown_winrate
+        }
+
+        for key, value in metrics.items():
+            tree.insert("", "end", values=(key, value))
+
+        tree.pack(fill='both', expand=True)
+
+
 
     def create_tabs(self):
         self.notebook.pack(fill='both', expand=True)
@@ -241,6 +279,7 @@ class PokerDataDashboard:
         tab3 = ttk.Frame(self.notebook)
         tab4 = ttk.Frame(self.notebook)
         tab5 = ttk.Frame(self.notebook)
+        
         
         self.notebook.add(tab1, text="Action Distribution")
         self.notebook.add(tab2, text="Winrate Distribution")
@@ -253,8 +292,9 @@ class PokerDataDashboard:
         self.plot_hand_strength(tab3)
         self.plot_estimated_vs_chips_won(tab4)
         self.plot_winrate_vs_foldrate(tab5)
+        self.add_analysis_summary_tab()
         self.add_summary_table_tab()
-
+        
     def run(self):
         self.create_tabs()
         self.root.mainloop()

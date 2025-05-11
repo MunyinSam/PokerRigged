@@ -11,6 +11,7 @@ from tkinter import messagebox, simpledialog
 import threading
 from handeval import HandEvaluator
 from cards import Card, Deck
+import pandas as pd
 
 
 class Button:
@@ -240,10 +241,12 @@ class PlayerManager:
         elif action == 'raise':
             self.game.raise_bet(amount)
 
+
 class BotManager:
     def __init__(self, bot, game):
         self.bot = bot
         self.game = game
+        self.stats_df = pd.read_csv("data/poker_data.csv")
         self.bot_actions = None
 
     def decide_action(self):
@@ -251,35 +254,51 @@ class BotManager:
         current_bet = self.game.bets[self.bot]
         chips = self.bot.chips
 
+        if len(self.stats_df) == 0:
+            return "check"
+
+        latest_stats = self.stats_df.iloc[-1]
+        est_winrate = latest_stats['estimated_winrate']
+        showdown_reached = latest_stats['showdown_reached']
+        showdown_wins = latest_stats['showdown_wins']
+        showdown_wr = showdown_wins / showdown_reached if showdown_reached else 0
+
+        is_aggressive = (
+            latest_stats['total_raises'] +
+            latest_stats[['preflop_raise', 'flop_raise', 'turn_raise', 'river_raise']].sum()
+        ) > (latest_stats['total_calls'] + latest_stats['total_folds'])
+
         actions = []
         weights = []
+
+        # Consider All-In
+        if est_winrate > 75 or (chips < 100 and est_winrate > 60) or showdown_wr > 0.7:
+            actions.append("all in")
+            weights.append(25)
 
         if current_bet == max_bet:
             actions.append("check")
             weights.append(50)
 
-            if chips >= 50:
+            if est_winrate > 50 and chips >= 50:
                 actions.append("raise")
-                weights.append(20)
+                weights.append(30)
         else:
             call_amount = max_bet - current_bet
 
             if chips >= call_amount:
                 actions.append("call")
-                weights.append(30)
+                weights.append(30 if est_winrate > 40 else 10)
 
-                if chips > call_amount + 50:
+                if chips > call_amount + 50 and est_winrate > 55:
                     actions.append("raise")
-                    weights.append(15)
+                    weights.append(20 if is_aggressive else 10)
             else:
                 actions.append("fold")
-                weights.append(40)
-
-        # if chips > 0:
-        #     actions.append("all in")
-        #     weights.append(5)
+                weights.append(60 if est_winrate < 30 else 30)
 
         return random.choices(actions, weights=weights, k=1)[0]
+
 
     def take_action(self):
 
