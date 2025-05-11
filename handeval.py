@@ -221,8 +221,8 @@ class HandEvaluator:
 
         hand1_values = sorted([HandEvaluator.rank_to_value(card.rank) for card in hand1_cards], reverse=True)
         hand2_values = sorted([HandEvaluator.rank_to_value(card.rank) for card in hand2_cards], reverse=True)
-        print("hand1_values", hand1_values)
-        print("hand2_values", hand2_values)
+        # print("hand1_values", hand1_values)
+        # print("hand2_values", hand2_values)
 
         # Compare values one by one
         for v1, v2 in zip(hand1_values, hand2_values):

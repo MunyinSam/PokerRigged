@@ -40,7 +40,7 @@ class Data:
         return data
 
     def save_to_csv(self, filename='data/poker_data.csv'):
-        print("Saving data to CSV...")
+        # print("Saving data to CSV...")
         data_dict = self.to_dict()
 
         fieldnames = [

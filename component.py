@@ -160,11 +160,11 @@ class PlayerActions:
                     self.peek_action()
 
     def check_action(self):
-        print(f"{self.game_state.get_player_turn().name} checked.")
+        # print(f"{self.game_state.get_player_turn().name} checked.")
         self.game_state.check()
 
     def call_action(self):
-        print(f"{self.game_state.get_player_turn().name} called.")
+        # print(f"{self.game_state.get_player_turn().name} called.")
         self.game_state.call()
         
     def raise_action(self):
@@ -178,33 +178,34 @@ class PlayerActions:
         if amount is not None:
             if amount > player_chips:
                 self.show_popup("Invalid Action", "Not enough chips to raise.")
-                print(f"Insufficient chips. You only have {player_chips} chips.")
+                # print(f"Insufficient chips. You only have {player_chips} chips.")
             else:
                 print(f"{self.game_state.get_player_turn().name} raised by {amount}.")
                 self.game_state.raise_bet(amount)
         else:
-            print("You didn't enter a valid raise amount.")
+            # print("You didn't enter a valid raise amount.")
+            pass
         
     def fold_action(self):
-        print(f"{self.game_state.get_player_turn().name} folded.")
+        # print(f"{self.game_state.get_player_turn().name} folded.")
         self.game_state.fold()
 
     def all_in_action(self):
         all_in_amount = self.game_state.get_player_turn().chips
-        print(f"{self.game_state.get_player_turn().name} went all-in with {all_in_amount} chips.")
+        # print(f"{self.game_state.get_player_turn().name} went all-in with {all_in_amount} chips.")
         self.game_state.raise_bet(all_in_amount)
         
     def peek_action(self):
-        print("PEEKING")
+        # print("PEEKING")
 
         for i, player in enumerate(self.game_state.get_all_players()):
             full_hand = self.game_state.get_community_cards() + player.hand
             e = HandEvaluator()
             evaluated_hand = e.evaluate_hand(full_hand)
-            print(player)
-            print("Full hand: ", full_hand)
-            print("Evaluated_hand: ", evaluated_hand)
-            print("----------------")
+            # print(player)
+            # print("Full hand: ", full_hand)
+            # print("Evaluated_hand: ", evaluated_hand)
+            # print("----------------")
         
         winrate = HandEvaluator.calculate_winrate(self.game_state.get_all_players()[0].hand, self.game_state.get_community_cards())
         message = f"Estimated winrate: {winrate}%"
@@ -304,7 +305,7 @@ class BotManager:
 
         # time.sleep(2)
         action = self.decide_action()
-        print(f"Bot chooses to {action}")
+        # print(f"Bot chooses to {action}")
 
         try:
             self.bot_actions = action
@@ -321,5 +322,5 @@ class BotManager:
                 self.bot_actions = f"raise {raise_amount}"
                 self.game.raise_bet(raise_amount)
         except ValueError as e:
-            print(f"Bot action failed: {e}")
+            # print(f"Bot action failed: {e}")
             self.game.fold()

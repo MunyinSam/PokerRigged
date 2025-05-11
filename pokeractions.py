@@ -47,8 +47,8 @@ class PokerGame:
         self.game_ended = False
 
         winrate = HandEvaluator.calculate_winrate(self.get_all_players()[0].hand, self.get_community_cards())
-        print("winrate ", winrate)
-        print("winrate function called")
+        # print("winrate ", winrate)
+        # print("winrate function called")
         self.data.estimated_winrate = winrate
         self.data.save_to_csv()
 
@@ -98,17 +98,17 @@ class PokerGame:
         return self.log
 
     def change_turn(self):
-        print("change turn")
+        # print("change turn")
         active_players = [p for p in self.players if not p.folded]
 
         if len(active_players) == 1:
             self.win_pot([active_players[0]])
             if active_players[0] == self.players[0]:
-                print("Player 1 wins")
+                # print("Player 1 wins")
                 self.data.winning_hand_type = HandEvaluator.evaluate_hand(self.get_all_players()[0].hand + self.community_cards)[0]
                 self.data.losing_hand_type = HandEvaluator.evaluate_hand(self.get_all_players()[1].hand + self.community_cards)[0]
             else:
-                print("Player 2 wins")
+                # print("Player 2 wins")
                 self.data.winning_hand_type = HandEvaluator.evaluate_hand(self.get_all_players()[1].hand + self.community_cards)[0]
                 self.data.losing_hand_type = HandEvaluator.evaluate_hand(self.get_all_players()[0].hand + self.community_cards)[0]
             return
@@ -120,7 +120,7 @@ class PokerGame:
 
         if self.player_turn == self.players[1]:
             self.bot_thinking = True
-            print("Bot thinking")
+            # print("Bot thinking")
 
             def bot_action():
                 self.bot_manager.take_action()
@@ -240,7 +240,7 @@ class PokerGame:
         if self.reset_in_progress or self.game_ended:
             return
 
-        print("win pot")
+        # print("win pot")
         self.game_ended = True
         if condition == "tie":
             for player in players:
@@ -270,7 +270,7 @@ class PokerGame:
                 self.ask_reset_game(f"Both players wins the pot of {self.pot} chips!")
 
     def next_phase(self):
-        print("next phase")
+        # print("next phase")
         active_players = [p for p in self.players if not p.folded]
 
         if len(active_players) == 1:
@@ -283,35 +283,35 @@ class PokerGame:
 
             if self.turn == "Pre-Flop":
                 self.turn = "Flop"
-                print("Game Turn: Preflop")
+                # print("Game Turn: Preflop")
 
             elif self.turn == "Flop":
                 self.community_cards.extend([self.deck.draw() for _ in range(3)])
                 self.turn = "Turn"
-                print("Game Turn: Flop")
+                # print("Game Turn: Flop")
 
             elif self.turn == "Turn":
                 self.community_cards.append(self.deck.draw())
                 self.turn = "River"
-                print("Game Turn: Turn")
+                # print("Game Turn: Turn")
 
             elif self.turn == "River":
                 self.community_cards.append(self.deck.draw())
                 self.turn = "Showdown"
-                print("Game Turn: River")
+                # print("Game Turn: River")
 
             elif self.turn == "Showdown":
-                print("Game Turn: Showdown")
+                # print("Game Turn: Showdown")
                 self.data.showdown_reached += 1
                 hand1 = self.players[0].hand + self.community_cards
                 hand2 = self.players[1].hand + self.community_cards
                 result = HandEvaluator.compare_hands(hand1, hand2)
                 text = result[0]
 
-                print("results", result)
+                # print("results", result)
 
                 if result[1] == "hand1":
-                    print("Player 1 wins")
+                    # print("Player 1 wins")
                     self.data.showdown_wins += 1
                     self.players[1].fold()
                     self.win_pot([self.players[0]], text)
@@ -319,7 +319,7 @@ class PokerGame:
                     self.data.losing_hand_type = HandEvaluator.evaluate_hand(hand2)[0]
 
                 elif result[1] == "hand2":
-                    print("Player 2 wins")
+                    # print("Player 2 wins")
                     self.players[0].fold()
                     self.win_pot([self.players[1]], text)
                     self.data.losing_hand_type = HandEvaluator.evaluate_hand(hand1)[0]

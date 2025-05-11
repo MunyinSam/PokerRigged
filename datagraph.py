@@ -26,7 +26,7 @@ class PokerDataDashboard:
         try:
             return pd.read_csv(self.csv_path, header=0, names=column_names)
         except pd.errors.ParserError as e:
-            print(f"Error reading CSV file: {e}")
+            # print(f"Error reading CSV file: {e}")
             return pd.DataFrame(columns=column_names)
 
     def plot_action_distribution(self, frame):

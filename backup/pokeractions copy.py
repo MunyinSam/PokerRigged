@@ -43,14 +43,14 @@ class PokerGame:
 
     def reset_game(self):
         # Reset the deck for a new round
-        print("reset game")
+        # print("reset game")
         self.isloading = True
         self.bot_actions = None
         self.game_ended = False
 
         winrate = HandEvaluator.calculate_winrate(self.get_all_players()[0].hand, self.get_community_cards())
-        print("winrate ", winrate)
-        print("winrate function called")
+        # print("winrate ", winrate)
+        # print("winrate function called")
         self.data.estimated_winrate = winrate
         self.data.save_to_csv()
         self.data = Data() # reset Data
@@ -104,7 +104,7 @@ class PokerGame:
         return self.log
 
     def change_turn(self):
-        print("change turn")
+        # print("change turn")
         active_players = [p for p in self.players if not p.folded]
 
         if len(active_players) == 1:
@@ -114,11 +114,11 @@ class PokerGame:
         current_index = active_players.index(self.player_turn) if self.player_turn in active_players else -1
         next_index = (current_index + 1) % len(active_players)
         self.player_turn = active_players[next_index]
-        self.add_log(f"{self.player_turn.name}'s Turn")
+        # self.add_log(f"{self.player_turn.name}'s Turn")
 
         if self.player_turn == self.players[1]:
             self.bot_thinking = True
-            print("Bot thinking")
+            # print("Bot thinking")
 
             def bot_action():
                 self.bot_manager.take_action()
@@ -176,7 +176,7 @@ class PokerGame:
             self.data.river_checks += 1
         
         self.data.number_of_checks += 1
-        print("check: ", self.data.number_of_checks)
+        # print("check: ", self.data.number_of_checks)
         self.change_turn()
 
         if self.all_player_checked():
@@ -242,7 +242,7 @@ class PokerGame:
         if self.reset_in_progress or self.game_ended:
             return
 
-        print("win pot")
+        # print("win pot")
         self.game_ended = True  # prevent re-entering win_pot
         player.chips += self.pot
         self.showcard = True
@@ -260,7 +260,7 @@ class PokerGame:
 
 
     def next_phase(self):
-        print("next phase")
+        # print("next phase")
         active_players = [p for p in self.players if not p.folded]
 
         if len(active_players) == 1:
@@ -273,26 +273,26 @@ class PokerGame:
 
             if self.turn == "Pre-Flop":
                 self.turn = "Flop"
-                print("Game Turn: Preflop")
+                # print("Game Turn: Preflop")
 
             elif self.turn == "Flop":
                 self.community_cards.extend([self.deck.draw() for _ in range(3)])
                 self.turn = "Turn"
-                print("Game Turn: Flop")
+                # print("Game Turn: Flop")
 
             elif self.turn == "Turn":
                 self.community_cards.append(self.deck.draw())
                 self.turn = "River"
-                print("Game Turn: Turn")
+                # print("Game Turn: Turn")
 
             elif self.turn == "River":
                 self.community_cards.append(self.deck.draw())
                 self.turn = "Showdown"
-                print("Game Turn: River")
+                # print("Game Turn: River")
 
             elif self.turn == "Showdown":
                 # self.turn = "ShowCard"
-                print("Game Turn: Showdown")
+                # print("Game Turn: Showdown")
                 self.data.went_to_showdown += 1
                 hand1 = self.players[0].hand
                 hand2 = self.players[1].hand
@@ -322,7 +322,7 @@ class PokerGame:
 
     
     def ask_reset_game(self, text):
-        print("ask reset game")
+        # print("ask reset game")
         if self.reset_in_progress:
             return
 
