@@ -205,24 +205,20 @@ class HandEvaluator:
                 
     @staticmethod
     def compare_hands(hand1, hand2):
-        # Call evaluate_hand and get both the hand type and the list of cards
         hand1_type, hand1_cards = HandEvaluator.evaluate_hand(hand1)
         hand2_type, hand2_cards = HandEvaluator.evaluate_hand(hand2)
 
-        # Hand rankings for comparison
         hand_rankings = {
             "High Card": 1, "One Pair": 2, "Two Pair": 3, "Three of a Kind": 4,
             "Straight": 5, "Flush": 6, "Full House": 7, "Four of a Kind": 8,
             "Straight Flush": 9
         }
 
-        # Compare hand rankings
         if hand_rankings[hand1_type] > hand_rankings[hand2_type]:
             return (f"You win with {hand1_type} ({hand1_cards})", "hand1")
         elif hand_rankings[hand1_type] < hand_rankings[hand2_type]:
             return (f"Bot win with {hand2_type} ({hand2_cards})", "hand2")
 
-        # If hand types are the same, compare card values
         hand1_values = sorted([HandEvaluator.rank_to_value(card.rank) for card in hand1_cards], reverse=True)
         hand2_values = sorted([HandEvaluator.rank_to_value(card.rank) for card in hand2_cards], reverse=True)
         print("hand1_values", hand1_values)
@@ -262,10 +258,8 @@ class HandEvaluator:
             sim_deck = full_deck.cards[:]
             random.shuffle(sim_deck)
 
-            # Draw random opponent hand (2 cards)
             opp_hand = sim_deck[:2]
 
-            # Draw remaining community cards
             missing = 5 - len(community_cards)
             board_fill = sim_deck[2:2 + missing]
             full_board = community_cards + board_fill
@@ -283,7 +277,6 @@ class HandEvaluator:
                 wins += 1
             elif hand1_score == hand2_score:
                 ties += 1
-            # else: loss
 
         return round(100 * (wins + ties / 2) / num_simulations, 2)
 

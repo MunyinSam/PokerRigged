@@ -43,12 +43,14 @@ class PokerGame:
 
     def reset_game(self):
         # Reset the deck for a new round
+        print("reset game")
         self.isloading = True
         self.bot_actions = None
         self.game_ended = False
 
         winrate = HandEvaluator.calculate_winrate(self.get_all_players()[0].hand, self.get_community_cards())
         print("winrate ", winrate)
+        print("winrate function called")
         self.data.estimated_winrate = winrate
         self.data.save_to_csv()
         self.data = Data() # reset Data
@@ -300,12 +302,12 @@ class PokerGame:
                     self.data.won_at_showdown += 1
                     self.players[1].fold()
                     self.win_pot(self.players[0])
-                    self.data.player_winning_hand = HandEvaluator.evaluate_hand(hand1)[0]
+                    self.data.winning_hand_type = HandEvaluator.evaluate_hand(hand1)[0]
 
                 elif result[1] == "hand2":
                     self.players[0].fold()
                     self.win_pot(self.players[1])
-                    self.data.bot_winning_hand = HandEvaluator.evaluate_hand(hand2)[0]
+                    self.data.winning_hand_type = HandEvaluator.evaluate_hand(hand2)[0]
 
                 elif result[1] == "tie":
                     players = self.get_all_players()
@@ -313,7 +315,7 @@ class PokerGame:
                     for player in players:
                         player.add_chips(amount)
                     text = f"All players tied! The pot of {self.pot} chips is split!"
-                    self.data.player_winning_hand = HandEvaluator.evaluate_hand(hand1)[0]
+                    self.data.winning_hand_type = HandEvaluator.evaluate_hand(hand1)[0]
 
                 self.showcard = True
                 self.add_log(text)

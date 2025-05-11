@@ -19,21 +19,20 @@ class Data:
         self.total_checks = 0
 
         # Winrate tracking
-        self.estimated_winrate = 0.0  # Value shown to player at button press
+        self.estimated_winrate = 0.0
 
         # Hand type summary
-        self.winning_hand_type = ""  # e.g. "Pair", "Flush"
-        self.losing_hand_type = ""   # Same as above
+        self.winning_hand_type = ""
+        self.losing_hand_type = ""
 
         # Stage-specific actions
         self.preflop_actions = {"fold": 0, "call": 0, "raise": 0, "check": 0}
-        self.flop_actions = {"fold": 0, "call": 0, "raise": 0, "bet": 0, "check": 0}
-        self.turn_actions = {"fold": 0, "call": 0, "raise": 0, "bet": 0, "check": 0}
-        self.river_actions = {"fold": 0, "call": 0, "raise": 0, "bet": 0, "check": 0}
+        self.flop_actions = {"fold": 0, "call": 0, "raise": 0, "check": 0}
+        self.turn_actions = {"fold": 0, "call": 0, "raise": 0, "check": 0}
+        self.river_actions = {"fold": 0, "call": 0, "raise": 0, "check": 0}
 
     def to_dict(self):
         data = self.__dict__.copy()
-        # Flatten stage action dictionaries
         for stage in ["preflop", "flop", "turn", "river"]:
             for action, value in data[f"{stage}_actions"].items():
                 data[f"{stage}_{action}"] = value
@@ -43,11 +42,22 @@ class Data:
     def save_to_csv(self, filename='data/poker_data.csv'):
         print("Saving data to CSV...")
         data_dict = self.to_dict()
+
+        fieldnames = [
+            "rounds_played", "total_chips_won", "total_chips_lost", "total_wins", "total_losses",
+            "showdown_reached", "showdown_wins", "total_folds", "total_calls", "total_raises", "total_checks",
+            "estimated_winrate", "winning_hand_type", "losing_hand_type",
+            "preflop_fold", "preflop_call", "preflop_raise", "preflop_check",
+            "flop_fold", "flop_call", "flop_raise", "flop_check",
+            "turn_fold", "turn_call", "turn_raise", "turn_check",
+            "river_fold", "river_call", "river_raise", "river_check"
+        ]
+
         os.makedirs(os.path.dirname(filename), exist_ok=True)
         file_exists = os.path.isfile(filename)
 
         with open(filename, 'a', newline='') as csvfile:
-            writer = csv.DictWriter(csvfile, fieldnames=data_dict.keys())
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
             if not file_exists:
                 writer.writeheader()
             writer.writerow(data_dict)

@@ -142,7 +142,7 @@ class PlayerActions:
             mouse_pos = pg.mouse.get_pos()
 
             if self.game.leave_button.is_hovered(mouse_pos):
-                pg.quit()
+                return "quit_to_menu"
 
             if self.game_state.is_your_turn():
                 if self.game.check_button.is_hovered(mouse_pos):

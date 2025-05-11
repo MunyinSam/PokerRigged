@@ -35,7 +35,9 @@ class GameRunner:
                     if self.current_screen == "menu" and self.menu.handle_event(event, self.mouse_pos):
                         self.current_screen = "game"
                     elif self.current_screen == "game" and self.player_actions:
-                        self.player_actions.handle_event(event)
+                        action = self.player_actions.handle_event(event)
+                        if action == "quit_to_menu":
+                            self.current_screen = "menu"
 
             if self.current_screen == "menu":
                 self.menu.display()
@@ -169,11 +171,9 @@ class Game:
             button = self.create_button(x, y, button_width, button_height, text, font, color, cf.button_color)
             buttons.append(button)
 
-        # Assign to named attributes if needed
         (self.fold_button, self.check_button, self.call_button,
         self.raise_button, self.all_in_button, self.peek_button) = buttons
 
-        # Quit button stays top-left
         self.leave_button = self.create_button(30, 40, 80, 40, "QUIT", self.font_small, (230, 0, 0), (0, 0, 0))
 
 
@@ -215,7 +215,6 @@ class Game:
         highlight_font = pg.font.Font(cf.font_body, 28)
         rendered_parts = []
 
-        # Render all stages
         for stage in stages:
             is_current = (stage == self.game_state.turn)
             font = highlight_font if is_current else label_font
@@ -223,18 +222,14 @@ class Game:
             text_surf = font.render(stage, True, color)
             rendered_parts.append(text_surf)
 
-        # Arrow between stages
         arrow_font = pg.font.Font(cf.font_body, 28)
         arrow_surf = arrow_font.render("-", True, (100, 100, 100))
 
-        # Calculate total width
         total_width = sum(part.get_width() for part in rendered_parts) + arrow_surf.get_width() * (len(stages) - 1)
         max_height = max(part.get_height() for part in rendered_parts)
 
-        # Center on top of screen
         center_x = self.screen.get_width() // 2
-        y = 45  # top padding
-
+        y = 45
         padding_x = 60
         padding_y = 20
         bg_rect = pg.Rect(center_x - total_width // 2 - padding_x, y - padding_y,
@@ -242,7 +237,6 @@ class Game:
 
         pg.draw.rect(self.screen, (255, 255, 255), bg_rect, border_radius=12)
 
-        # Draw black border around the background
         pg.draw.rect(self.screen, (0, 0, 0), bg_rect, width=2, border_radius=12)
 
         # Draw sequence
@@ -280,17 +274,14 @@ class Game:
 
         self.draw_hand(players[0], x_centered, y_bottom, 100, 150, hand_width, hand_height)
 
-        # Bot hand remains top right
         top_y = 140
         self.bot_hand(players[1], self.screen_width - 275, top_y, 100, 150, hand_width, hand_height)
 
 
     def draw_hand(self, player, x_right, y_bottom, card_width, card_height, hand_width, hand_height):
-        # Calculate total width of the hand
         total_card_width = len(player.hand) * card_width + (len(player.hand) - 1) * 20
         x_start = x_right - total_card_width + 500
 
-        # Render and position the label above the cards
         label_font = pg.font.Font(cf.font_body, 25)
         label_text = "YOUR HAND"
         label_surface = label_font.render(label_text, True, (255, 255, 255))
@@ -298,7 +289,6 @@ class Game:
         label_rect = label_surface.get_rect(center=(x_start + total_card_width // 2, y_bottom - 30))
         self.screen.blit(label_surface, label_rect)
 
-        # Draw each card
         for card in player.hand:
             card_name = PokerGame.convert_name(card)
             card_image = pg.image.load(f"./picture/PNG-cards-1.3/{card_name}")
@@ -307,11 +297,9 @@ class Game:
             x_start += card_width + 20
     
     def bot_hand(self, player, x_right, y_bottom, card_width, card_height, hand_width, hand_height):
-        # Calculate total width of the hand
         total_card_width = len(player.hand) * card_width + (len(player.hand) - 1) * 20
         x_start = x_right - total_card_width + 170
 
-        # Render and position the label above the cards
         label_font = pg.font.Font(cf.font_body, 25)
         label_text = "BOT HAND"
         label_surface = label_font.render(label_text, True, (255, 255, 255))
@@ -319,7 +307,6 @@ class Game:
         label_rect = label_surface.get_rect(center=(x_start + total_card_width // 2, y_bottom - 10))
         self.screen.blit(label_surface, label_rect)
 
-        # Draw each card
         for card in player.hand:
             card_name = PokerGame.convert_name(card)
             if self.game_state.showcard:
@@ -356,13 +343,11 @@ class Game:
         text_surface = font.render(f"Bot is Thinking{dots}", True, (255, 255, 255))
         text_rect = text_surface.get_rect(center=(self.screen.get_width() // 2, self.screen.get_height() // 2))
 
-        # Draw
         self.screen.blit(overlay, (0, 0))
         self.screen.blit(text_surface, text_rect)
 
 
     def display_loading_screen(self):
-        # Create semi-transparent overlay
         overlay = pg.Surface(self.screen.get_size(), pg.SRCALPHA)
         overlay.fill((0, 0, 0, 128))
 
@@ -393,9 +378,8 @@ class Game:
             is_turn = self.game_state.turn == player.name
             is_bot = player.name.lower() == "bot"
 
-            # Panel background with white tone
             panel_rect = pg.Rect(40, y_offset, panel_width, panel_height)
-            bg_color = (245, 245, 245) if not is_turn else (255, 255, 255)  # lighter on current turn
+            bg_color = (245, 245, 245) if not is_turn else (255, 255, 255)
             border_color = (200, 200, 200) if not is_turn else (120, 120, 120)
             pg.draw.rect(self.screen, bg_color, panel_rect, border_radius=12)
             pg.draw.rect(self.screen, border_color, panel_rect, width=2, border_radius=12)
@@ -435,11 +419,11 @@ class Game:
 
         self.screen.blit(label_surface, label_rect)
         
+    # ไม่ได้ใช้
     def display_log(self):
         log = self.game_state.get_log()
-        latest_logs = log[-10:]  # Show only the last 10 messages
+        latest_logs = log[-10:]
 
-        # Chat box dimensions
         box_width = 250
         line_height = 18
         padding = 10
@@ -447,7 +431,7 @@ class Game:
         box_height = line_height * 10 + 2 * padding
 
         x = 10
-        y = self.screen.get_height() - box_height - 470  # 20px above bottom
+        y = self.screen.get_height() - box_height - 470
 
         # Draw chat box background
         chat_box_rect = pg.Rect(x, y, box_width, box_height)
